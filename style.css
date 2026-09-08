@@ -566,3 +566,14 @@ tbody tr:last-child td { border-bottom: 0; }
     min-width: 0;
   }
 }
+
+
+/* 거래상태/접수채널 제거 후 전체 폭 사용 */
+.main-grid {
+  grid-template-columns: 1fr;
+}
+
+.facility-panel,
+.building-panel {
+  grid-column: 1;
+}
