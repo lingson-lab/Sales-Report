@@ -51,7 +51,6 @@
     donutTotal: $("donutTotal"),
     donutLegend: $("donutLegend"),
 
-    buildingBars: $("buildingBars"),
     generatedAt: $("generatedAt")
   };
 
@@ -589,89 +588,6 @@
       .join("");
   }
 
-  function renderBuildings(rows) {
-    if (!state.keys.building) {
-      els.buildingBars.innerHTML =
-        '<div class="empty">"동" 헤더를 찾지 못했습니다.</div>';
-      return;
-    }
-
-    const map = new Map();
-
-    rows
-      .filter(row => !row.__cancelled)
-      .forEach(row => {
-        const buildingRaw = String(
-          row[state.keys.building] ?? ""
-        ).trim();
-
-        if (!buildingRaw) return;
-
-        const building = /동$/.test(buildingRaw)
-          ? buildingRaw
-          : `${buildingRaw}동`;
-
-        if (!map.has(building)) {
-          map.set(building, {
-            members: new Set(),
-            transactions: 0,
-            sales: 0
-          });
-        }
-
-        const item = map.get(building);
-        item.transactions += row.__count;
-        item.sales += row.__amount;
-
-        if (state.keys.member) {
-          const member = String(
-            row[state.keys.member] ?? ""
-          ).trim();
-
-          if (member) item.members.add(member);
-        }
-      });
-
-    const items = [...map.entries()]
-      .map(([name, item]) => ({
-        name,
-        members: state.keys.member
-          ? item.members.size
-          : item.transactions,
-        transactions: item.transactions,
-        sales: item.sales
-      }))
-      .sort(
-        (a, b) =>
-          b.members - a.members ||
-          b.transactions - a.transactions
-      )
-      .slice(0, 5);
-
-    if (!items.length) {
-      els.buildingBars.innerHTML =
-        '<div class="empty">데이터 없음</div>';
-      return;
-    }
-
-    const max = Math.max(
-      ...items.map(item => item.members),
-      1
-    );
-
-    els.buildingBars.innerHTML = items
-      .map(item => `
-        <div class="bar-row">
-          <div class="bar-name">${escapeHtml(item.name)}</div>
-          <div class="bar-track">
-            <i class="bar-fill" style="width:${Math.max(4, item.members / max * 100)}%"></i>
-          </div>
-          <div class="bar-value">${item.members.toLocaleString("ko-KR")}명 · ${formatWon(item.sales)}</div>
-        </div>
-      `)
-      .join("");
-  }
-
   function render(month) {
     const rows = state.rows.filter(row => row.__month === month);
     const comparison = getComparisonRows(month, rows);
@@ -753,7 +669,6 @@
       comparison.available
     );
 
-    renderBuildings(rows);
 
     els.generatedAt.textContent =
       `생성 ${new Intl.DateTimeFormat("ko-KR", {
