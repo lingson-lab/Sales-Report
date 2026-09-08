@@ -464,3 +464,105 @@ tbody tr:last-child td { border-bottom: 0; }
 
   .report, .panel, .kpi-card { break-inside: avoid; }
 }
+
+
+/* ===== 전월 비교 ===== */
+.comparison-note {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  margin: -2px 0 12px;
+  padding: 9px 12px;
+  border: 1px solid #E4E6F6;
+  border-radius: 10px;
+  background: #FAFAFF;
+  color: #6F7787;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kpi-delta {
+  display: inline-flex !important;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  margin-top: 8px !important;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px !important;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kpi-delta.up,
+.mom-value.up {
+  color: #16734A;
+  background: #EAF7F0;
+}
+
+.kpi-delta.down,
+.mom-value.down {
+  color: #C33C3C;
+  background: #FFF0F0;
+}
+
+.kpi-delta.flat,
+.mom-value.flat {
+  color: #5F6673;
+  background: #F0F2F5;
+}
+
+.kpi-delta.neutral,
+.mom-value.neutral {
+  color: #747C8B;
+  background: #F3F4F7;
+}
+
+.mom-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 65px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.prev-sales {
+  color: #747C8B;
+}
+
+@media (max-width: 900px) {
+  .facility-panel table {
+    min-width: 820px;
+  }
+}
+
+@media print {
+  .comparison-note {
+    min-height: 24px;
+    margin: -1px 0 6px;
+    padding: 5px 8px;
+    font-size: 7px;
+    border-radius: 6px;
+  }
+
+  .kpi-delta {
+    min-height: 16px;
+    margin-top: 4px !important;
+    padding: 3px 5px;
+    font-size: 7px !important;
+  }
+
+  .mom-value {
+    min-width: 48px;
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .facility-panel table {
+    min-width: 0;
+  }
+}
