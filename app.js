@@ -51,8 +51,6 @@
     donutTotal: $("donutTotal"),
     donutLegend: $("donutLegend"),
 
-    statusSummary: $("statusSummary"),
-    channelSummary: $("channelSummary"),
     buildingBars: $("buildingBars"),
     generatedAt: $("generatedAt")
   };
@@ -753,37 +751,6 @@
       rows,
       comparison.rows,
       comparison.available
-    );
-
-    const statusItems = state.keys.status
-      ? group(
-          rows,
-          row => row[state.keys.status],
-          row => row.__count
-        )
-      : [{
-          name: "정상",
-          value: currentMetrics.transactions
-        }];
-
-    renderSummary(
-      els.statusSummary,
-      statusItems,
-      statusItems.reduce((sum, item) => sum + item.value, 0)
-    );
-
-    const channelItems = state.keys.channel
-      ? group(
-          rows,
-          row => row[state.keys.channel],
-          row => row.__count
-        )
-      : [];
-
-    renderSummary(
-      els.channelSummary,
-      channelItems,
-      channelItems.reduce((sum, item) => sum + item.value, 0)
     );
 
     renderBuildings(rows);
