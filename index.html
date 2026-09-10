@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>커뮤니티 운영 현황</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="report">
+      <header class="report-header">
+        <div>
+          <p class="eyebrow">LINGSON · OPERATION REPORT</p>
+          <h1>커뮤니티 운영 현황</h1>
+          <p class="subtitle" id="periodText">매출 파일과 출입내역 파일을 업로드하면 자동으로 분석됩니다.</p>
+        </div>
+
+        <div class="header-actions">
+          <label class="upload-btn">
+            <input id="dataFiles" type="file" accept=".xls,.xlsx,.csv" multiple hidden />
+            매출 데이터 업로드
+          </label>
+
+          <label class="upload-btn upload-btn-access">
+            <input id="accessFiles" type="file" accept=".xls,.xlsx,.csv" multiple hidden />
+            출입내역 업로드
+          </label>
+
+          <div class="period-mode" role="group" aria-label="분석 단위 선택">
+            <button id="monthlyMode" class="period-mode-btn active" type="button" aria-pressed="true">월간</button>
+            <button id="weeklyMode" class="period-mode-btn" type="button" aria-pressed="false">주간</button>
+          </div>
+
+          <select id="periodSelect" aria-label="분석 기간 선택" disabled>
+            <option>기준기간</option>
+          </select>
+
+          <button id="printBtn" class="secondary-btn" type="button">A4 인쇄</button>
+        </div>
+      </header>
+
+      <div class="status-stack">
+        <div class="status-line">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="statusText">매출 엑셀 또는 CSV 파일을 선택해 주세요.</span>
+        </div>
+        <div class="status-line compact-status">
+          <span id="accessStatusDot" class="status-dot"></span>
+          <span id="accessStatusText">출입내역 파일을 선택하면 시간대별 이용량을 분석합니다.</span>
+        </div>
+      </div>
+
+      <section class="kpi-grid kpi-grid-main">
+        <article class="kpi-card accent">
+          <p>총 실매출</p>
+          <strong id="totalSales">-</strong>
+          <div id="salesDelta" class="kpi-delta neutral">전월 비교 -</div>
+          <span id="salesPeriodRule">수강 시작월 기준 · 실매출 = 매출 − 환불 · 취소 제외</span>
+        </article>
+
+        <article class="kpi-card">
+          <p>이용 회원수</p>
+          <strong id="uniqueMembers">-</strong>
+          <div id="membersDelta" class="kpi-delta neutral">전월 비교 -</div>
+          <span>회원명 기준 중복 제외</span>
+        </article>
+
+        <article class="kpi-card">
+          <p>평균 결제금액</p>
+          <strong id="averagePayment">-</strong>
+          <div id="averageDelta" class="kpi-delta neutral">전월 비교 -</div>
+          <span>총 실매출 ÷ 정상 매출 거래건수</span>
+        </article>
+      </section>
+
+      <section class="facility-highlight-grid">
+        <article class="facility-highlight best">
+          <div>
+            <p class="highlight-label">최고 매출 시설</p>
+            <strong id="topFacilityName">-</strong>
+          </div>
+          <div class="highlight-value-wrap">
+            <span id="topFacilitySales" class="highlight-value">-</span>
+            <span id="topFacilityDelta" class="mini-delta neutral">전월 비교 -</span>
+          </div>
+        </article>
+
+        <article class="facility-highlight low">
+          <div>
+            <p class="highlight-label">최저 매출 시설</p>
+            <strong id="bottomFacilityName">-</strong>
+          </div>
+          <div class="highlight-value-wrap">
+            <span id="bottomFacilitySales" class="highlight-value">-</span>
+            <span id="bottomFacilityDelta" class="mini-delta neutral">전월 비교 -</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="access-highlight-section">
+        <article class="access-highlight-card">
+          <div class="access-icon" aria-hidden="true">⏱</div>
+          <div class="access-highlight-main">
+            <p class="highlight-label">출입 이용 피크 시간</p>
+            <strong id="peakAccessTime">-</strong>
+            <span id="peakAccessMonth" class="access-period">출입내역 파일 미업로드</span>
+          </div>
+          <div class="highlight-value-wrap">
+            <span id="peakAccessCount" class="highlight-value">-</span>
+            <span id="peakAccessShare" class="mini-delta neutral">시간대 비중 -</span>
+          </div>
+        </article>
+      </section>
+
+      <div id="comparisonNote" class="comparison-note">
+        이전 기간 데이터가 함께 포함되어 있으면 월간은 전월, 주간은 전주 대비 증감률을 자동 계산합니다.
+      </div>
+
+      <section class="details-stack">
+        <details class="detail-card">
+          <summary>
+            <div>
+              <p class="panel-kicker">FACILITY SALES</p>
+              <strong>시설별 매출 상세</strong>
+            </div>
+            <span id="facilityMonthLabel" class="small-badge">-</span>
+          </summary>
+
+          <div class="detail-content">
+            <div class="facility-layout">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>시설</th>
+                      <th id="currentSalesHeader" class="num">당월 실매출</th>
+                      <th id="previousSalesHeader" class="num">전월 실매출</th>
+                      <th id="comparisonSalesHeader" class="num">전월 대비</th>
+                      <th class="num">거래건수</th>
+                      <th class="num">회원수</th>
+                      <th class="num">매출비중</th>
+                    </tr>
+                  </thead>
+                  <tbody id="facilityTable">
+                    <tr><td colspan="7" class="empty">데이터 없음</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="donut-area">
+                <div id="donutChart" class="donut" aria-label="시설별 매출 비중">
+                  <div class="donut-center">
+                    <span>총 실매출</span>
+                    <strong id="donutTotal">-</strong>
+                  </div>
+                </div>
+                <div id="donutLegend" class="legend"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="detail-card">
+          <summary>
+            <div>
+              <p class="panel-kicker">ACCESS BY HOUR</p>
+              <strong>출입 시간대별 상세</strong>
+            </div>
+            <span id="accessMonthLabel" class="small-badge">-</span>
+          </summary>
+
+          <div class="detail-content">
+            <div class="access-detail-grid">
+              <div class="table-wrap">
+                <table class="access-table">
+                  <thead>
+                    <tr>
+                      <th>시간대</th>
+                      <th class="num">출입건수</th>
+                      <th class="num">비중</th>
+                    </tr>
+                  </thead>
+                  <tbody id="accessHourTable">
+                    <tr><td colspan="3" class="empty">출입내역 데이터 없음</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="access-summary-box">
+                <span>분석 반영 출입건수</span>
+                <strong id="accessIncludedCount">-</strong>
+                <small id="accessExcludedNote">999동·9999동은 자동 제외합니다.</small>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="detail-card">
+          <summary>
+            <div>
+              <p class="panel-kicker">ANALYSIS DETAIL</p>
+              <strong>집계 상세 및 제외 내역</strong>
+            </div>
+            <span class="summary-hint">펼쳐보기</span>
+          </summary>
+
+          <div class="detail-content">
+            <div class="detail-stat-grid">
+              <div class="detail-stat">
+                <span>정상 거래건수</span>
+                <strong id="totalTransactions">-</strong>
+                <small id="transactionsDelta">전월 비교 -</small>
+              </div>
+              <div class="detail-stat">
+                <span>업로드 원본 행</span>
+                <strong id="sourceRowCount">-</strong>
+                <small>매출 파일 합산</small>
+              </div>
+              <div class="detail-stat">
+                <span>999/9999동 제외</span>
+                <strong id="testExcludedCount">-</strong>
+                <small>직원 테스트 데이터</small>
+              </div>
+              <div class="detail-stat">
+                <span>환불 차감</span>
+                <strong id="refundExcludedCount">-</strong>
+                <small id="refundExcludedAmount">-</small>
+              </div>
+              <div class="detail-stat">
+                <span>취소 제외</span>
+                <strong id="cancelExcludedCount">-</strong>
+                <small>실매출·회원·시설 집계 제외</small>
+              </div>
+              <div class="detail-stat">
+                <span>분석 반영 행</span>
+                <strong id="includedRowCount">-</strong>
+                <small>매출 + 환불 반영 행</small>
+              </div>
+            </div>
+
+            <div class="rules-box">
+              <strong>집계 기준</strong>
+              <ul>
+                <li>분석 단위: <b>월간 / 주간</b>을 선택할 수 있습니다. 주간은 <b>월요일~일요일</b> 기준이며, 정확한 주간 분석에는 수강 시작일처럼 일자 정보가 필요합니다.</li>
+                <li>매출 기준: 월간은 <b>수강 시작월</b>, 주간은 <b>수강 시작일</b> 기준으로 집계합니다. 일자가 없는 월 단위 행은 주간 분석에서 제외합니다.</li>
+                <li>총 실매출: 거래구분/거래종류가 <b>매출이면 +금액, 환불이면 −금액</b>으로 반영하고 <b>취소는 제외</b>합니다.</li>
+                <li>테스트 데이터: 동 값이 <b>999동 또는 9999동</b>인 행은 매출·환불·회원·시설·출입 분석에서 모두 제외합니다.</li>
+                <li>출입 피크 시간: 출입일시/입장일시/인증일시 등에서 시각을 읽어 <b>1시간 단위</b>로 집계합니다.</li>
+                <li>기간 비교: 월간은 <b>전월</b>, 주간은 <b>전주</b> 데이터가 업로드 파일 안에 있을 때 증감률을 표시합니다.</li>
+              </ul>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <footer class="report-footer">
+        <div>
+          <strong>LINGSON</strong>
+          <span>Community Operation System</span>
+        </div>
+        <span id="generatedAt">-</span>
+      </footer>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
